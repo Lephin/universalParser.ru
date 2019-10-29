@@ -7,8 +7,14 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
+use yii\web\UploadedFile;
+use yii\web\Session;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\UploadForm;
+
+use app\models\ParseExcel;
+
 
 class SiteController extends Controller
 {
@@ -37,6 +43,10 @@ class SiteController extends Controller
             ],
         ];
     }
+     public function actionUpload()
+    {
+
+    }
 
     /**
      * {@inheritdoc}
@@ -61,7 +71,55 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $model = new UploadForm(); // Загрузка файла
+        
+        $session = Yii::$app->session;
+        $session->open();
+
+        if (!isset($session['lineFile'])) {
+            $session->destroy();
+            $parseModel = new ParseExcel($model->lineFile); // Парсер файла, передаем путь
+        } else {
+            $parseModel = new ParseExcel($session['lineFile']); // Парсер файла, передаем путь
+            $parseModel->getArray($name = null);                     
+        }
+      
+        if (Yii::$app->request->isPost) {
+            
+            $request = Yii::$app->request;
+            $post = $request->post();
+            
+            $parseModel->selected = $post['changeSheet'];
+            $parseModel->getArray($post['changeSheet']); 
+            
+            $model->imageFile = UploadedFile::getInstance($model, 'imageFile');
+            
+            if (isset($model->imageFile)) {
+                if ($model->upload()) {
+
+                    unset($session['lineFile']);
+                    $session->destroy();
+
+                    $session['lineFile'] = $model->lineFile; 
+
+                    $parseModel = new ParseExcel($session['lineFile']); // Парсер файла, передаем путь
+                    $parseModel->getArray($name = null); //Получаем чистый массив данных конкретного листа ( Обязательный параметр )                    
+
+                    return $this->render('index', [
+                        'model' => $model,
+                        'test' => $parseModel,
+                    ]);
+
+                }
+            }
+                
+        }
+
+        return $this->render('index', [
+            'model' => $model,
+            'test' =>  $parseModel
+                ]);
+       
     }
 
     /**

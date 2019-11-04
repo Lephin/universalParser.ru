@@ -1,0 +1,72 @@
+ /**
+     * Displays homepage.
+     *
+     * @return string
+     */
+    public function actionIndex()
+    {
+        $model = new UploadForm(); // Загрузка файла
+        
+            //Указываем бязательные поля для заполнения. Данные колонки должны быть в документе Excel
+            $validate = [
+                 'ID',
+                 'City',
+                 'Name'
+             ];  
+                     
+        
+        $session = Yii::$app->session;
+        $session->open();
+
+        if (!isset($session['lineFile'])) {
+            $session->destroy();
+            $parseModel = new ParseExcel($model->lineFile); // Парсер файла, передаем путь
+            $parseModel->validatesArray($validate);
+        } else {
+            $parseModel = new ParseExcel($session['lineFile']); // Парсер файла, передаем путь
+            $parseModel->getArray($session['selected']); 
+            $parseModel->validatesArray($validate);
+            $parseModel->selected = $session['selected'];
+        }
+          
+      
+        if (Yii::$app->request->isPost) {
+            
+            $request = Yii::$app->request;
+            $post = $request->post();
+           
+            
+            $session['selected'] = $post['changeSheet'];
+            $parseModel->selected = $session['selected'];
+
+            
+            $parseModel->getArray($parseModel->selected); 
+            
+            $model->imageFile = UploadedFile::getInstance($model, 'imageFile');
+            
+            if (isset($model->imageFile)) {
+                if ($model->upload()) {
+
+  
+                    unset($session['lineFile']);
+                    $session->destroy();
+
+                    $session['lineFile'] = $model->lineFile; 
+
+                    $parseModel = new ParseExcel($session['lineFile']); // Парсер файла, передаем путь
+                    $parseModel->getArray($name = null); //Получаем чистый массив данных конкретного листа ( Обязательный параметр )                    
+                    
+                  
+                    echo '<pre>';
+                    var_dump($parseModel->validatesArray($validate));
+                    echo '</pre>';
+                    
+                    return $this->render('index', [
+                        'model' => $model,
+                        'test' => $parseModel,
+                    ]);
+
+                }
+            }
+                
+        }

@@ -7,26 +7,29 @@ use yii\helpers\ArrayHelper;
 /* @var $this yii\web\View */
 
 $this->title = 'My Yii Application';
+
 ?>
 <div class="site-index">
     <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]) ?>
 
-    <?= $form->field($model, 'imageFile')->fileInput([]) ?>
+    <div style="display: inline-block;vertical-align: top"><?= $form->field($model, 'imageFile')->fileInput([]) ?></div>
+
+    <div style="display: inline-block;vertical-align: top;"><button style="margin-top: 24px;">Подтвердить</button></div>
+
+    <div>
+        <?php // echo Html::dropDownList('changeSheet',$test->selected, $test->getSheetNames(), ['class' => 'btn btn-primary']);?>
+        
+        
+    </div>
     
-    <div class=""><?php echo $test->line?></div>
+        <?php 
+
+        ?>
     
-    <?php 
-
-        echo Html::dropDownList('changeSheet',$test->selected, $test->getSheetNames(), ['class' => 'btn btn-primary']);
-
-    ?>
-
-    <button>Загрузить документ</button>
-
-<?php ActiveForm::end();?>
+    <?php ActiveForm::end();?>
     
     <?php  echo GridView::widget([
-        'dataProvider' => $test->dataParse(),
+        'dataProvider' => $test->validatesArray(),
        // 'columns' => $test->settingGrid() 
     ]) ?>
 </div>

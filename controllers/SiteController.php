@@ -12,8 +12,8 @@ use yii\web\Session;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\UploadForm;
-
 use app\models\ParseExcel;
+use app\models\ExcelForm;
 
 
 class SiteController extends Controller
@@ -71,39 +71,22 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+            //Указываем бязательные поля для заполнения. Данные колонки должны быть в документе Excel
+            $validate = [
+                 'ID',
+                 'City',
+                 'Name'
+            ];
+            
         $model = new UploadForm(); // Загрузка файла
-        
-        $session = Yii::$app->session;
-        $session->open();
-
-        if (!isset($session['lineFile'])) {
-            $session->destroy();
-            $parseModel = new ParseExcel($model->lineFile); // Парсер файла, передаем путь
-        } else {
-            $parseModel = new ParseExcel($session['lineFile']); // Парсер файла, передаем путь
-            $parseModel->getArray($name = null);                     
-        }
-      
+        $parseModel = new ParseExcel($model->lineFile, $validate);
+               
         if (Yii::$app->request->isPost) {
-            
-            $request = Yii::$app->request;
-            $post = $request->post();
-            
-            $parseModel->selected = $post['changeSheet'];
-            $parseModel->getArray($post['changeSheet']); 
-            
-            $model->imageFile = UploadedFile::getInstance($model, 'imageFile');
-            
+            $model->imageFile = UploadedFile::getInstance($model, 'imageFile'); 
             if (isset($model->imageFile)) {
                 if ($model->upload()) {
-
-                    unset($session['lineFile']);
-                    $session->destroy();
-
-                    $session['lineFile'] = $model->lineFile; 
-
-                    $parseModel = new ParseExcel($session['lineFile']); // Парсер файла, передаем путь
-                    $parseModel->getArray($name = null); //Получаем чистый массив данных конкретного листа ( Обязательный параметр )                    
+                    
+                    $parseModel = new ParseExcel($model->lineFile,$validate);
 
                     return $this->render('index', [
                         'model' => $model,
@@ -111,8 +94,7 @@ class SiteController extends Controller
                     ]);
 
                 }
-            }
-                
+            }      
         }
 
         return $this->render('index', [
@@ -182,5 +164,31 @@ class SiteController extends Controller
     public function actionAbout()
     {
         return $this->render('about');
+    }
+    
+    public function actionTest()
+    {
+        $excelForm = new ExcelForm(); //Полная подготовка Excel документа. Будет работать только после загрузки документа
+        $uploadForm = new UploadForm(); //Загрузка документа на сервер
+        
+        if (Yii::$app->request->isPost) {
+            
+            $uploadForm->imageFile = UploadedFile::getInstance($uploadForm, 'imageFile');
+            
+            if ($uploadForm->upload()) {
+            
+                var_dump($excelForm->loadExcel($uploadForm->lineFile));
+                
+                return $this->render('test',[
+                    'uploadForm' => $uploadForm,
+                    'excelForm' => $excelForm
+                ]);
+            }
+        }
+
+        return $this->render('test',[
+            'uploadForm' => $uploadForm,
+            'excelForm' => $excelForm
+        ]);
     }
 }

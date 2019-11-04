@@ -2,6 +2,10 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/home/lephin/web/www/universalParser.ru/models/ParseExcel.php</file>
+            <file>file:/home/lephin/web/www/universalParser.ru/views/site/index.php</file>
+            <file>file:/home/lephin/web/www/universalParser.ru/controllers/SiteController.php</file>
+        </group>
     </open-files>
 </project-private>

@@ -71,11 +71,14 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-            //Указываем бязательные поля для заполнения. Данные колонки должны быть в документе Excel
+            //Указываем обязательные поля для заполнения. Данные колонки должны быть в документе Excel
+        //    $validate = [];
             $validate = [
-                 'ID',
-                 'City',
-                 'Name'
+                ['PostCodeList',"int","empty"],
+                ['ID',"int"],
+                ['cityDD','int']
+        //        ['City','','empty'],
+        //        ['Name','','empty']
             ];
             
         $model = new UploadForm(); // Загрузка файла
@@ -87,7 +90,8 @@ class SiteController extends Controller
                 if ($model->upload()) {
                     
                     $parseModel = new ParseExcel($model->lineFile,$validate);
-
+                    //$parseModel->validatesArray();
+                       
                     return $this->render('index', [
                         'model' => $model,
                         'test' => $parseModel,
@@ -177,7 +181,7 @@ class SiteController extends Controller
             
             if ($uploadForm->upload()) {
             
-                var_dump($excelForm->loadExcel($uploadForm->lineFile));
+                $excelForm = new ExcelForm($uploadForm->lineFile);
                 
                 return $this->render('test',[
                     'uploadForm' => $uploadForm,

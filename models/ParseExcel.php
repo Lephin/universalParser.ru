@@ -16,24 +16,28 @@ class ParseExcel extends Model
     public $validatesArray; //Данные валидации
     
     public $massivName;
+    
+    public $validatesInt;
+    
+    public $notValidate;
+    
+    public $validatesEmpty;
 
-    public function __construct($line,$validate) {
+    public function __construct($line = null,$validate = null) {
         
         if (!empty($line)) {
             
-            //Путь к документу, что был загружен
-            $this->line = $line;
+            if (isset($line) && !empty($line)) {
+                $this->line = $line; //Путь к файлу
+                $this->spreadsheet = $this->loadExcel(); //Объект данных документа Excel
+                $this->array = $this->getArray();
+            } else {
+                return 'Путь к файлу не указан или не существует';    
+            }
             
-            $this->validatesArray = $validate;
-                    
-            //Объект для чтение данных из документа
-            $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx(); 
-
-            //Значение чтения
-            $reader->setReadDataOnly(true); 
-
-            //Рабочий документ
-            $this->spreadsheet = $reader->load($this->line);
+            if (isset($validate) && !empty($validate)) {
+                $this->validatesArray = $validate;
+            }
             
         } else {
         
@@ -49,10 +53,10 @@ class ParseExcel extends Model
      */
     public function loadExcel()
     {
-        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx(); //Объект для чтение данных из документа
-        $reader->setReadDataOnly(true); // Не знаю
+        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify($this->line); //Объект для чтение данных из документа
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($inputFileType); 
         $spreadsheet = $reader->load($this->line); // Загрузка документа
-        
+
         return $spreadsheet;
     }
     
@@ -68,9 +72,9 @@ class ParseExcel extends Model
             return $this->spreadsheet->getSheetNames();
        } else {
            
-           return  [null];
+           return [null];
+           
        }
-     
     }
     
     /**
@@ -109,13 +113,13 @@ class ParseExcel extends Model
             $result = array_shift($array_flip);
             
            //Создание ассоциативного массива для провайдера данных 
-            for ($i =1;$i < count($array);$i++){
+            for ($i =1;$i <= count($array);$i++){
                 $z = $result;
                 foreach ($array[0] as $test) {
                     if (isset($array[$i][$z])) {
                         $massiv[$i][$test] = $array[$i][$z];
                     } else {
-                        $massiv[$i][$test] = '';
+                        $massiv[$i][$test] = null;
                     }
                 $z++; 
                 }  
@@ -132,11 +136,12 @@ class ParseExcel extends Model
      * 
      * @return array
      * Настрйоки для компонента GridView
+     * НЕ ГОТОВО
      */
     public function settingGrid()
     {
         if (isset($this->line)) {
-            $array = $this->getArray();
+            $array = $this->array;
 
             foreach ($array[1] as $name => $element) {
 
@@ -164,23 +169,18 @@ class ParseExcel extends Model
      */
     public function dataParse()
     {
-       $array = $this->getArray(); //Массив готовых данных для провайдера данных yii2
-        
+       $array = $this->array; //Массив готовых данных для провайдера данных yii2
+       $settingGrid = $this->settingGrid();
+       
         if (!isset($array)) {
-            $provider = new ArrayDataProvider([
-                'allModels' => [['Документ не загружен']],
-                'pagination' => [
-                    'pageSize' => 20,
-                ],
-
-            ]);
-                return $provider;
+            $array = [['Документ не загружен']];
+            $settingGrid = [null];
         } 
         
         $provider = new ArrayDataProvider([
             'allModels' => $array,
             'sort' => [
-                'attributes' => $this->settingGrid() 
+                'attributes' => $settingGrid 
             ],
             'pagination' => [
                 'pageSize' => 20,
@@ -192,6 +192,30 @@ class ParseExcel extends Model
             
     }
     
+    //Выгрузка 
+    public function validatesArray()
+    {
+        $validatesArrayName = $this->validatesArrayName();
+        $validatesArrayEmpty = $this->validatesArrayEmpty();
+        $validatesArrayInt = $this->validatesArrayInt();
+        
+        if (isset($validatesArrayName) && !empty($validatesArrayName)) {
+           $resultArray['name'] = $validatesArrayName;
+        }
+        
+        if (isset($validatesArrayEmpty) && !empty($validatesArrayEmpty)) {
+            $resultArray['empty'] = $validatesArrayEmpty; 
+        }
+        
+        if (isset($validatesArrayInt) && !empty($validatesArrayInt)) {
+                $resultArray['int'] = $validatesArrayInt; 
+        }
+            
+            if (!empty($resultArray)) {
+                return $resultArray;
+            }
+    }
+
     /**
      * 
      * @param type $name
@@ -199,29 +223,109 @@ class ParseExcel extends Model
      * Создание обязательных полей для документа Excel. Если таких полей в документе
      * не будет, то валидация будет не успешна
      */
-    public function validatesArray()
+    public function validatesArrayName()
     {
-        
-        $array = $this->getArray();//Готовый массив данных для прохождения валидации
+        $array = $this->array;//Готовый массив данных для прохождения валидации
         $validate = $this->validatesArray;
         
         if (isset($validate) && is_array($validate)) {
-            for ($i = 0; $i < count($validate); $i++) { //Проверка соответствий ключей. Обязательнх ключей в массиве
-                if (!array_key_exists($validate[$i],$array[1])) { 
-                    $provider = new ArrayDataProvider([
-                        'allModels' => [['Колонка '.$validate[$i]. ' отсутствует']],
-                        'pagination' => [
-                            'pageSize' => 20,
-                        ],
-
-            ]);
-                return $provider;
+            for ($i = 0; $i < count($validate); $i++) { 
+                if (isset($validate[$i][0])) {
+                    //Проверка название колонок на соответствие
+                    if (!array_key_exists($validate[$i][0],$array[1])) { 
+                        $notValidate[] = $validate[$i][0];
+                    }
+                } else {
+                    return null;
                 }
             }
+  
         } 
-            
-        return $this->dataParse();
         
+        if (!empty($notValidate)) {
+            return $notValidate;
+        }
+        
+    }
+    
+    /**
+     * 
+     * @return type
+     * //Проверка целых чисел в массиве
+     */
+    public function validatesArrayInt()
+    {
+                
+    //    if (!empty($this->validatesArrayName())) {
+    //        return $this->validatesArrayName();
+    //    }
+        
+        $validate = $this->validatesArray;
+        $array = $this->array;
+
+        if (is_array($validate) && isset($validate)) {
+            for ($i = 0; $i < count($validate); $i++) {
+                //Проверка содержимое колонок на соответствие типа данных
+                if (isset($validate[$i][1])) {
+                    if (!empty($validate[$i][1] && $validate[$i][1] == 'int')) {
+                        $validatesResult[]= $validate[$i];
+                    }
+                }
+            }
+            
+            if (!empty($validatesResult) && isset($validatesResult)) {
+                for($i = 0;$i<count($validatesResult);$i++) {
+                    for ($y =1;$y<count($array);$y++) {
+                        if (!is_numeric($array[$y][$validatesResult[$i][0]])) {
+                            $notValidate[$validatesResult[$i][0]][$y] = $array[$y][$validatesResult[$i][0]];
+                        }
+                    }
+                }
+                
+                 return $notValidate;
+            } else {
+                return null;
+            }
+        }        
+        
+    }
+    
+    /**
+     * 
+     * @return type
+     * //Проверка пустых ячеек
+     */
+    public function validatesArrayEmpty() 
+    {
+    //    if (!empty($this->validatesArrayName())) {
+    //        return $this->validatesArrayName();
+    //    }
+        
+        $validate = $this->validatesArray;
+        $array = $this->array;
+        
+        if (is_array($validate) && isset($validate)) {
+            for ($i = 0; $i < count($validate); $i++) {
+                //Проверка содержимое колонок на соответствие типа данных
+                if (isset($validate[$i][2])) {
+                    if (!empty($validate[$i][2] && $validate[$i][2] == 'empty')) {
+                        $validatesResult[]= $validate[$i];
+                    }
+                }
+            }
+             if (!empty($validatesResult) && isset($validatesResult)) {
+                for($i = 0;$i<count($validatesResult);$i++) {
+                    for ($y =1;$y<count($array);$y++) {
+                        if ($array[$y][$validatesResult[$i][0]] == '') {
+                            $notValidate[$validatesResult[$i][0]][$y + 1] = $array[$y][$validatesResult[$i][0]];
+                        }
+                    }
+                }
+            
+            return $notValidate;
+            }
+            
+        } 
     }
 
     /**

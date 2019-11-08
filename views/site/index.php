@@ -26,10 +26,25 @@ $this->title = 'My Yii Application';
 
         ?>
     
-    <?php ActiveForm::end();?>
-    
-    <?php  echo GridView::widget([
-        'dataProvider' => $test->validatesArray(),
+    <?php ActiveForm::end();
+    $array = $test->validatesArray();
+  //  $arrayName = $test->validatesArrayName();
+  //  $arrayInt = $test->validatesArrayInt();
+  //  $arrayEmpty = $test->validatesArrayEmpty();
+  
+   echo '<pre>';
+   var_dump($array);
+  // var_dump($arrayEmpty);
+  // var_dump($arrayInt);
+  // var_dump($arrayName);
+   echo '</pre>';
+   
+  
+    ?>
+     
+        
+        <?php  echo GridView::widget([
+        'dataProvider' => $test->dataParse(),
        // 'columns' => $test->settingGrid() 
     ]) ?>
 </div>

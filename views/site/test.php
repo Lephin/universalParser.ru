@@ -33,8 +33,8 @@ $this->title = 'My Yii Application';
     
     <?php ActiveForm::end();?>
     
-    <?php // echo GridView::widget([
-       // 'dataProvider' => $test->dataParse(),
+    <?php  echo GridView::widget([
+        'dataProvider' => $excelForm->dataParse(),
        // 'columns' => $test->settingGrid() 
-   // ]) ?>
+    ]) ?>
 </div>

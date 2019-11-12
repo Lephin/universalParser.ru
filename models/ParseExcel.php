@@ -3,7 +3,8 @@
 namespace app\models;
 
 use yii\base\Model;
-use yii\data\ArrayDataProvider; 
+use yii\data\ArrayDataProvider;
+use yii\helpers\Html;
 
 class ParseExcel extends Model
 {
@@ -25,25 +26,22 @@ class ParseExcel extends Model
 
     public function __construct($line = null,$validate = null) {
         
-        if (!empty($line)) {
-            
             if (isset($line) && !empty($line)) {
                 $this->line = $line; //Путь к файлу
                 $this->spreadsheet = $this->loadExcel(); //Объект данных документа Excel
                 $this->array = $this->getArray();
-            } else {
-                return 'Путь к файлу не указан или не существует';    
+                
             }
             
             if (isset($validate) && !empty($validate)) {
                 $this->validatesArray = $validate;
+            } else {
+                $this->validatesArray = null;
             }
-            
-        } else {
-        
-            return null;
-            
-        }
+    }
+    
+    public function __toString() {
+        return $this->dropArray();
     }
 
     /**
@@ -124,7 +122,7 @@ class ParseExcel extends Model
                 $z++; 
                 }  
             }
-           
+
             return $massiv;
              
         } else {
@@ -135,11 +133,35 @@ class ParseExcel extends Model
     /**
      * 
      * @return array
-     * Настрйоки для компонента GridView
-     * НЕ ГОТОВО
+     *
      */
-    public function settingGrid()
+    public function sortArrayDataProvider()
     {
+        if (isset($this->line)) {
+            $array = $this->array;
+
+            foreach ($array[1] as $name => $element) {
+
+                $nameAttribute[] = $name;
+            }
+
+        //    $test1[] = ['class' => 'yii\grid\SerialColumn'];
+
+        //    foreach ($nameAttribute as $my) {
+
+        //        $columns[] = ['attribute' => $my];
+        //    }
+         //   $columns1 = $columns;
+         //   $result = array_merge($columns1,$test1);
+
+            return $nameAttribute;
+        }
+       
+    }
+    
+    //Возвращает настройки для виджета Grid
+    public function settingGrid() {
+        
         if (isset($this->line)) {
             $array = $this->array;
 
@@ -152,14 +174,15 @@ class ParseExcel extends Model
 
             foreach ($nameAttribute as $my) {
 
-                $columns[] = ['attribute' => $my];
+                $columns[] = [
+                    'attribute' => $my,
+                    'filter' => Html::dropDownList('changeSheet',null, $nameAttribute, ['class' => 'btn btn-primary'])];
             }
-            $columns1 = $columns;
-            $result = array_merge($columns1,$test1);
+           
+            $result = array_merge($columns,$test1);
 
-            return $nameAttribute;
+            return $result;
         }
-       
     }
 
     /**
@@ -170,7 +193,7 @@ class ParseExcel extends Model
     public function dataParse()
     {
        $array = $this->array; //Массив готовых данных для провайдера данных yii2
-       $settingGrid = $this->settingGrid();
+       $settingGrid = $this->sortArrayDataProvider();
        
         if (!isset($array)) {
             $array = [['Документ не загружен']];
@@ -192,7 +215,20 @@ class ParseExcel extends Model
             
     }
     
-    //Выгрузка 
+    public function dataDropArray()
+    {
+   //     $array = $this->dropArray(true);
+    //     $provider = new ArrayDataProvider([
+    //         'allModels' => array_flip($array),
+    //         'sort' => [
+    //            'attributes' => $array
+    //        ],
+    //     ]);
+         
+    //     return $provider;
+    }
+
+        //Выгрузка 
     public function validatesArray()
     {
         $validatesArrayName = $this->validatesArrayName();
@@ -213,6 +249,8 @@ class ParseExcel extends Model
             
             if (!empty($resultArray)) {
                 return $resultArray;
+            } else {
+                return 'Не указан массив данных для проверки';
             }
     }
 
@@ -327,29 +365,61 @@ class ParseExcel extends Model
             
         } 
     }
-
     /**
      * 
-     * @param string $arrayMerge
-     * @return type
+     * @param bolean $bolean
+     * @param array $style
+     * @return array
+     * 
+     * 
      */
-    public function dropArray($arrayMerge)
+    public function dropArray($bolean = null,$style = [],$int = null)
     {
-        if (!empty($array) && is_array($arrayMerge)) {
-        $array = $this->array;
-        
-        $arrayMerge = [
-            'Новый элемент массива',
-            'Новый элемент массива',
-        ];
-        
-        $newArray = array_keys($array[1]);
-        $result = array_merge($arrayMerge,$newArray);
-         
-        return $result;
+        if ($bolean === true || $bolean === false) {
+            $arrayMerge = [
+                'Новый элемент массива1',
+                'Новый элемент массива2',
+            ];
 
+            $array = $this->array;
+
+            if (!empty($array) && is_array($arrayMerge)) {
+
+                $newArray = array_keys($array[1]);
+                $newArray2 = array_keys($array[1]);;
+
+                foreach ($arrayMerge as $key) {
+                    array_push($newArray,$key);
+                }
+                
+                foreach ($newArray as $key) {
+                    $resultArray[$key] = $key;
+                }
+                
+                if ($bolean === false) {    
+                    return $resultArray;
+                }
+                
+                if ($bolean === true && !is_int($int)) { 
+                    for ($i = 0;$i <count($array[1]);$i++) {
+                        echo Html::dropDownList($newArray[$i], $newArray[$i], $resultArray , $style);
+                    }
+                }
+                
+                if ($bolean === true && is_int($int)) {
+                    echo Html::dropDownList($newArray[$int], $newArray[$int], $resultArray , $style);
+                }
+                    
+            }
         } else {
-            return $this->dataParse();    
+
+            return 'Для вывода данных значение должно быть true или false';
         }
+
+    }
+    
+    public function dropArrayHtml()
+    {
+
     }
 }

@@ -74,17 +74,21 @@ class SiteController extends Controller
             //Указываем обязательные поля для заполнения. Данные колонки должны быть в документе Excel
         //    $validate = [];
             $validate = [
-                ['PostCodeList',"int","empty"],
-                ['ID',"int"],
-                ['cityDD','int']
-        //        ['City','','empty'],
-        //        ['Name','','empty']
+            //    ['PostCodeList',"","empty"],
+            //    ['ID',"int",''],
+             //   ['cityDD','int']
+             //   ['City','','empty'],
+             //   ['Name','','empty']
             ];
             
         $model = new UploadForm(); // Загрузка файла
         $parseModel = new ParseExcel($model->lineFile, $validate);
                
         if (Yii::$app->request->isPost) {
+        //    $post = Yii::$app->request->post();
+        //    echo '<pre>';
+        //    var_dump($post);
+        //    echo '</pre>';
             $model->imageFile = UploadedFile::getInstance($model, 'imageFile'); 
             if (isset($model->imageFile)) {
                 if ($model->upload()) {

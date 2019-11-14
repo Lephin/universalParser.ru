@@ -26,22 +26,18 @@ class ParseExcel extends Model
 
     public function __construct($line = null,$validate = null) {
         
-            if (isset($line) && !empty($line)) {
+            if (isset($line)) {
                 $this->line = $line; //Путь к файлу
                 $this->spreadsheet = $this->loadExcel(); //Объект данных документа Excel
                 $this->array = $this->getArray();
                 
             }
             
-            if (isset($validate) && !empty($validate)) {
+            if (isset($validate)) {
                 $this->validatesArray = $validate;
             } else {
                 $this->validatesArray = null;
             }
-    }
-    
-    public function __toString() {
-        return $this->dropArray();
     }
 
     /**
@@ -69,15 +65,12 @@ class ParseExcel extends Model
        if (isset($this->line)) {
             return $this->spreadsheet->getSheetNames();
        } else {
-           
-           return [null];
-           
+           return [null];    
        }
     }
     
     /**
      * 
-     * @param int $name
      * @return array
      * Возвращает массив данных с рабочих листов
      */
@@ -144,16 +137,6 @@ class ParseExcel extends Model
 
                 $nameAttribute[] = $name;
             }
-
-        //    $test1[] = ['class' => 'yii\grid\SerialColumn'];
-
-        //    foreach ($nameAttribute as $my) {
-
-        //        $columns[] = ['attribute' => $my];
-        //    }
-         //   $columns1 = $columns;
-         //   $result = array_merge($columns1,$test1);
-
             return $nameAttribute;
         }
        
@@ -187,23 +170,23 @@ class ParseExcel extends Model
 
     /**
      * 
-     * @return type
+     * @return array
      * Преобразование данных из Excel в Провайдер данных для компонентов yii2
      */
-    public function dataParse()
+    public function dataParse($array = [])
     {
-       $array = $this->array; //Массив готовых данных для провайдера данных yii2
+       
        $settingGrid = $this->sortArrayDataProvider();
        
         if (!isset($array)) {
-            $array = [['Документ не загружен']];
+            $array = [['Нет данных для вывода']];
             $settingGrid = [null];
         } 
         
         $provider = new ArrayDataProvider([
             'allModels' => $array,
             'sort' => [
-                'attributes' => $settingGrid 
+                'attributes' => [null] 
             ],
             'pagination' => [
                 'pageSize' => 20,
@@ -215,43 +198,28 @@ class ParseExcel extends Model
             
     }
     
-    public function dataDropArray()
-    {
-   //     $array = $this->dropArray(true);
-    //     $provider = new ArrayDataProvider([
-    //         'allModels' => array_flip($array),
-    //         'sort' => [
-    //            'attributes' => $array
-    //        ],
-    //     ]);
-         
-    //     return $provider;
-    }
-
-        //Выгрузка 
-    public function validatesArray()
-    {
+   /**
+    * 
+    * @return array
+    * Выгружаем либо готовый массив данных, который прошел проверки, либо выгружаем ошибки, которые были найдены при валидации
+    */
+    public function validatesArray($boolean = null)
+    {    
+        $validatesArrayEmpty = $this->validatesArrayEmpty(true);
         $validatesArrayName = $this->validatesArrayName();
-        $validatesArrayEmpty = $this->validatesArrayEmpty();
-        $validatesArrayInt = $this->validatesArrayInt();
         
-        if (isset($validatesArrayName) && !empty($validatesArrayName)) {
-           $resultArray['name'] = $validatesArrayName;
+        if (isset($validatesArrayName)){
+            return $validatesArrayName;
+        } else {
+            $this->array;
         }
         
-        if (isset($validatesArrayEmpty) && !empty($validatesArrayEmpty)) {
-            $resultArray['empty'] = $validatesArrayEmpty; 
+        if (isset($validatesArrayEmpty)) {
+            return $validatesArrayEmpty; 
+        } else {
+            return $this->array;
         }
         
-        if (isset($validatesArrayInt) && !empty($validatesArrayInt)) {
-                $resultArray['int'] = $validatesArrayInt; 
-        }
-            
-            if (!empty($resultArray)) {
-                return $resultArray;
-            } else {
-                return 'Не указан массив данных для проверки';
-            }
     }
 
     /**
@@ -264,24 +232,26 @@ class ParseExcel extends Model
     public function validatesArrayName()
     {
         $array = $this->array;//Готовый массив данных для прохождения валидации
-        $validate = $this->validatesArray;
         
-        if (isset($validate) && is_array($validate)) {
-            for ($i = 0; $i < count($validate); $i++) { 
-                if (isset($validate[$i][0])) {
-                    //Проверка название колонок на соответствие
-                    if (!array_key_exists($validate[$i][0],$array[1])) { 
-                        $notValidate[] = $validate[$i][0];
+        if (!empty($array)) {
+            $validate = $this->validatesArray;
+
+            if (isset($validate) && is_array($validate)) {
+                for ($i = 0; $i < count($validate); $i++) { 
+                    if (!empty($validate[$i][0])) {
+                        //Проверка название колонок на соответствие
+                        if (!array_key_exists($validate[$i][0],$array[1])) { 
+                            $notValidate[0][$validate[$i][0]] = 'Колонка '.$validate[$i][0].' отсутствует в документе';
+                        }
+                    } else {
+                        return [0 => ['error' => 'Не указаны колонки, которые нужно проверить']];
                     }
-                } else {
-                    return null;
                 }
+            } 
+
+            if (!empty($notValidate)) {
+                return $notValidate;
             }
-  
-        } 
-        
-        if (!empty($notValidate)) {
-            return $notValidate;
         }
         
     }
@@ -333,37 +303,55 @@ class ParseExcel extends Model
      * @return type
      * //Проверка пустых ячеек
      */
-    public function validatesArrayEmpty() 
+    public function validatesArrayEmpty($bolean = null) 
     {
-    //    if (!empty($this->validatesArrayName())) {
-    //        return $this->validatesArrayName();
-    //    }
-        
-        $validate = $this->validatesArray;
         $array = $this->array;
         
-        if (is_array($validate) && isset($validate)) {
-            for ($i = 0; $i < count($validate); $i++) {
-                //Проверка содержимое колонок на соответствие типа данных
-                if (isset($validate[$i][2])) {
-                    if (!empty($validate[$i][2] && $validate[$i][2] == 'empty')) {
-                        $validatesResult[]= $validate[$i];
-                    }
-                }
+        if (!empty($array)) {
+            
+            $validate = $this->validatesArray;
+
+            if (!empty($this->validatesArrayName())) {
+                return $this->validatesArrayName();
             }
-             if (!empty($validatesResult) && isset($validatesResult)) {
-                for($i = 0;$i<count($validatesResult);$i++) {
-                    for ($y =1;$y<count($array);$y++) {
-                        if ($array[$y][$validatesResult[$i][0]] == '') {
-                            $notValidate[$validatesResult[$i][0]][$y + 1] = $array[$y][$validatesResult[$i][0]];
+
+            if (is_array($validate) && isset($validate)) {
+                for ($i = 0; $i < count($validate); $i++) {
+                    //Проверка содержимое колонок на соответствие типа данных
+                    if (isset($validate[$i][2])) {
+                        if (!empty($validate[$i][2] && $validate[$i][2] == 'empty')) {
+                            $validatesResult[]= $validate[$i];
                         }
                     }
                 }
-            
-            return $notValidate;
+
+
+                if (isset($validatesResult)) {
+                    for($i = 0;$i<count($validatesResult);$i++) {
+                        for ($y =1;$y<count($array);$y++) {
+                            if ($array[$y][$validatesResult[$i][0]] == '') {
+                                    $notValidate[$validatesResult[$i][0]][$y + 1] = $y + 1;
+                            }
+                        }
+                    }
+                }
+
+                if (empty($notValidate)) {
+                    return null;
+                }
+
+                if ($bolean === true && !empty($notValidate)) {
+                    foreach ($notValidate as $key => $element) {
+                        $results[0][$key] =  'На строках: '.implode(', ', $element).' найдены не соответствие данных';
+                    }
+
+                    return $results;
+                }    
+
+                return $notValidate;
+
             }
-            
-        } 
+        }
     }
     /**
      * 
@@ -373,23 +361,20 @@ class ParseExcel extends Model
      * 
      * 
      */
-    public function dropArray($bolean = null,$style = [],$int = null)
+    public function dropArray(bool $bolean = null, $style = [],int $int = null, $arrayMerge = [])
     {
         if ($bolean === true || $bolean === false) {
-            $arrayMerge = [
-                'Новый элемент массива1',
-                'Новый элемент массива2',
-            ];
-
+            
             $array = $this->array;
 
-            if (!empty($array) && is_array($arrayMerge)) {
+            if (!empty($array)) {
 
                 $newArray = array_keys($array[1]);
-                $newArray2 = array_keys($array[1]);;
-
-                foreach ($arrayMerge as $key) {
-                    array_push($newArray,$key);
+                
+                if (!empty($arrayMerge)) {
+                    foreach ($arrayMerge as $key) {
+                        array_push($newArray,$key);
+                    }
                 }
                 
                 foreach ($newArray as $key) {
@@ -407,7 +392,11 @@ class ParseExcel extends Model
                 }
                 
                 if ($bolean === true && is_int($int)) {
-                    echo Html::dropDownList($newArray[$int], $newArray[$int], $resultArray , $style);
+                    if (isset($newArray[$int])) {
+                        echo Html::dropDownList($newArray[$int], $newArray[$int], $resultArray , $style);
+                    } else {
+                        echo 'Элемента номер '.$int.' в массиве не найденно ';
+                    }
                 }
                     
             }
@@ -417,9 +406,5 @@ class ParseExcel extends Model
         }
 
     }
-    
-    public function dropArrayHtml()
-    {
 
-    }
 }

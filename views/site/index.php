@@ -22,46 +22,48 @@ $this->title = 'My Yii Application';
 
     
     <?php 
-    $style = ['class' => 'btn btn-primary'];
+    
+//    $style = ['class' => 'btn btn-primary'];
     $dropSelect = $test->dropArray(true);
-    //$dropSelect2 = $test->dropArray(true);
-    $array = $test->validatesArray();
-    $dataParse = $test->getArray();
-    $sortGrid = $test->sortArrayDataProvider();
-    $settingGrid = $test->settingGrid();
-    $arrayName = $test->validatesArrayName();
-    $arrayInt = $test->validatesArrayInt();
-    $arrayEmpty = $test->validatesArrayEmpty();
-    $dataDropArray = $test->dataDropArray();
-    $dataParse = $test->dataParse();
+//    $array = $test->validatesArray();
+//    $arrayResult = $test->array; //Массив готовых данных для провайдера данных yii2
+//    $dataParse = $test->getArray();
+//    $sortGrid = $test->sortArrayDataProvider();
+//    $settingGrid = $test->settingGrid();
+//    $arrayName = $test->validatesArrayName();
+//    $arrayInt = $test->validatesArrayInt();
+//    $arrayEmpty = $test->validatesArrayEmpty(true);
+//    $dataParse = $test->dataParse($arrayResult);
     
   //  echo $dropSelect;
     
-   echo '<pre>';
+  // echo '<pre>';
   // var_dump($dataDropArray);
   // var_dump($dataParse);
   // var_dump($dropSelect);
   // var_dump($sortGrid);
   // var_dump($settingGrid);
   // var_dump($dropSelect);
-   var_dump($array);
-  // var_dump($arrayEmpty);
+  // var_dump($array);
+ // var_dump($arrayEmpty);
   // var_dump($arrayInt);
-  // var_dump($arrayName);
-   echo '</pre>';
-              
+ // var_dump($arrayName);
+ //  echo '</pre>';
+
 ?>
 
-  <?php 
-  
+  <?php
+
   echo Html::submitButton();
   
   ActiveForm::end(); ?> 
+    
         <?php  
+        
 
         echo GridView::widget([
-            //    'filterModel' => $dropSelect,
-                'dataProvider' => $test->dataParse(),
-            //    'columns' => $settingGrid
-            ]) ?>
+                'dataProvider' => $test->dataParse($test->validatesArray()),
+            ]) ;
+        
+        ?>
 </div>

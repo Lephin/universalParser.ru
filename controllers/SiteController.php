@@ -72,13 +72,11 @@ class SiteController extends Controller
     public function actionIndex()
     {
             //Указываем обязательные поля для заполнения. Данные колонки должны быть в документе Excel
-        //    $validate = [];
             $validate = [
-            //    ['PostCodeList',"","empty"],
-            //    ['ID',"int",''],
-             //   ['cityDD','int']
-             //   ['City','','empty'],
-             //   ['Name','','empty']
+                ['ID',"",'empty'],
+                ['PostCodeList',null,'empty']
+            //    ['City','','empty'],
+            //    ['Name','','empty']
             ];
             
         $model = new UploadForm(); // Загрузка файла

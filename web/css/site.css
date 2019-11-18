@@ -113,3 +113,16 @@ a.desc:after {
 .nav > li > form > button.logout:focus {
     outline: none;
 }
+.textColumns {
+    display:inline-block;
+    vertical-align:top;
+    width:100px;
+}
+.deleteColumns {
+    display:inline-block;
+    vertical-align:top;
+    margin-left:90px;
+    color:red;
+    cursor: pointer;
+}
+

@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use Yii;
 use yii\base\Model;
 //use yii\web\UploadedFile;
 //use PhpOffice\PhpSpreadsheet\Spreadsheet; //Для работы с Excel
@@ -23,10 +24,10 @@ class UploadForm extends Model
     public function upload()
     {
         if ($this->validate()) {
-
+                $sesion = Yii::$app->session;
                 $this->imageFile->saveAs( $_SERVER['DOCUMENT_ROOT'].'/uploads/' . $this->imageFile->baseName . '.' . $this->imageFile->extension); // Полный путь файла куда он загружен
                 $this->lineFile = $_SERVER['DOCUMENT_ROOT'].'/uploads/' . $this->imageFile->baseName . '.' . $this->imageFile->extension;
-
+                $sesion->set('line', $this->lineFile);
             return true;
         } else {
             return false;

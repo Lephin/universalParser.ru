@@ -1,7 +1,6 @@
 <?php
 
 namespace app\controllers;
-
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -71,29 +70,32 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-            //Указываем обязательные поля для заполнения. Данные колонки должны быть в документе Excel
-            $validate = [
-                ['ID',"",'empty'],
-                ['PostCodeList',null,'empty']
-            //    ['City','','empty'],
-            //    ['Name','','empty']
-            ];
-            
+        $request = Yii::$app->request;
+        $get = Yii::$app->request->get();
+        
+        $session = Yii::$app->session;
+        
         $model = new UploadForm(); // Загрузка файла
-        $parseModel = new ParseExcel($model->lineFile, $validate);
-               
+        $parseModel = new ParseExcel($session->get('line'), null, $get,$session->get('numberList'));
+        
+        if (Yii::$app->request->isGet) {
+          if (isset($get['value'])) {
+              return $parseModel->ajaxGet();
+          }  
+        }
+        
         if (Yii::$app->request->isPost) {
-        //    $post = Yii::$app->request->post();
-        //    echo '<pre>';
-        //    var_dump($post);
-        //    echo '</pre>';
+            $post = Yii::$app->request->post();
+            $session->set('numberList', $post["changeNameList"]);
+
+            $parseModel = new ParseExcel($session->get('line'),null,$get,$session->get('numberList'));
+            
             $model->imageFile = UploadedFile::getInstance($model, 'imageFile'); 
             if (isset($model->imageFile)) {
                 if ($model->upload()) {
                     
-                    $parseModel = new ParseExcel($model->lineFile,$validate);
-                    //$parseModel->validatesArray();
-                       
+                    $parseModel = new ParseExcel($session->get('line'),null,$get,$session->get('numberList'));
+  
                     return $this->render('index', [
                         'model' => $model,
                         'test' => $parseModel,

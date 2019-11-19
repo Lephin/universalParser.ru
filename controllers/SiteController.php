@@ -87,7 +87,16 @@ class SiteController extends Controller
         if (Yii::$app->request->isPost) {
             $post = Yii::$app->request->post();
             $session->set('numberList', $post["changeNameList"]);
-
+            
+            if (isset($post['testName'])) {
+                echo '<pre>';
+                echo 'Hello World';
+                echo '</pre>';
+            }
+            
+        //    echo '<pre>';
+        //    var_dump($post);
+        //   echo '</pre>';
             $parseModel = new ParseExcel($session->get('line'),null,$get,$session->get('numberList'));
             
             $model->imageFile = UploadedFile::getInstance($model, 'imageFile'); 

@@ -49,9 +49,14 @@ class ParseExcel extends Model
      */
     public $validatesArrayAjax;
 
+    /**
+     *
+     * @var type 
+     */
     public $nowSelectedList;
 
 
+    public $testText;
     /**
      * 
      * @param string $line
@@ -71,12 +76,13 @@ class ParseExcel extends Model
         
         $this->validatesArray = json_decode($this->ajaxGet(),true);
 
-    //    if (isset($validate) && is_array($validate)) {
-    //        $this->validatesArray = $validate;
-    //    } else {
-    //        $this->validatesArray = $this->ajaxGet();
-    //    }
     }
+    
+//    public function rules() {
+ //           return [
+  //            [['testText'],'safe']
+  //          ];
+ //   }
 
     /**
      * 
@@ -194,6 +200,8 @@ class ParseExcel extends Model
      */
     public function settingGrid() {
         
+    //    $form2 = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);
+        // $form2->field($test, 'testText')->dropDownList(['first' => 'first'])
         if (isset($this->line)) {
             $array = $this->array;
 
@@ -505,7 +513,7 @@ class ParseExcel extends Model
         } 
     }
     
-    public function nowSelectedList()
+    public function nowColumnsList()
     {
         
     }

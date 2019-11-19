@@ -21,8 +21,8 @@ $this->title = 'My Yii Application';
     <div style="display: block;vertical-align: top"><?= $form->field($model, 'imageFile')->fileInput(['value' => 'Документ'])->label('Загрузить документ') ?></div>
 
     <div  style="display: block;vertical-align: top;"><button style="margin-bottom: 40px;">Загрузить</button></div>
-    
-
+   
+   
     <table class="table table-striped table-bordered">
         <tbody>
             <tr>
@@ -42,7 +42,7 @@ $this->title = 'My Yii Application';
                     <table>
                         <tr>
                             <td>    
-                            <?php echo Html::textInput('validateColumns', null, ['id' => 'validateAddColumns','class' => 'form-control'])?>
+                            <?php echo Html::textInput(null, null, ['id' => 'validateAddColumns','class' => 'form-control'])?>
                             <?php 
                             ?>
                             </td>
@@ -52,7 +52,7 @@ $this->title = 'My Yii Application';
                         </tr>
                         <tr>
                             <td>
-                                <?php echo Html::dropDownList('validateRules', null, ["null" => 'Правил нет', 'empty' => 'Проверить на пустоту',],['id' => 'validateRules','class' => 'form-control form-control-sm']);?>
+                                <?php echo Html::dropDownList(null, null, ["null" => 'Правил нет', 'empty' => 'Проверить на пустоту',],['id' => 'validateRules','class' => 'form-control form-control-sm']);?>
                                 <?php // echo Html::button('Подтвердить правило');?> 
                                 <?php
                                 echo Html::button('Добавить правило ++',[
@@ -99,16 +99,17 @@ $this->title = 'My Yii Application';
             </tr>
         </tbody>
     </table>
-    
+
+
   <?php echo GridView::widget([
             //    'filterModel' => ["ID"],
             //    'tableOptions' => ['id' => 'addDrop'],
                 'dataProvider' => $test->dataParse($test->validatesArray()),
                 'columns' => $test->settingGrid(),
             ]) ;
-        
-    echo Html::submitButton();
-  
-  ActiveForm::end();
         ?>
+
+    <?php   echo Html::submitButton('Загрузить в БД',['class' => 'btn btn-primary','name' => 'testName']);?>
+      <?php ActiveForm::end(); ?>   
+ 
 </div>

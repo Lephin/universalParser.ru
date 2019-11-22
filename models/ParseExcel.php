@@ -55,17 +55,28 @@ class ParseExcel extends Model
      */
     public $nowSelectedList;
 
-
+    /**
+     *
+     * @var type 
+     */
     public $testText;
+    
+    /**
+     *
+     * @var type 
+     */
+    public $post;
+    
     /**
      * 
      * @param string $line
      * @param array $validate
      */
-    public function __construct($line = null,$validate = null, $get = null, $nowSelectedList = null)
+    public function __construct($line = null,$validate = null, $get = null, $nowSelectedList = null,$post = [])
     {
         $this->get = $get;
         $this->nowSelectedList = $nowSelectedList;
+        $this->post = $post;
         
         if (isset($line)) {
             $this->line = $line; //Путь к файлу
@@ -73,17 +84,9 @@ class ParseExcel extends Model
             $this->array = $this->getArray();
 
         }
-        
         $this->validatesArray = json_decode($this->ajaxGet(),true);
-
     }
     
-//    public function rules() {
- //           return [
-  //            [['testText'],'safe']
-  //          ];
- //   }
-
     /**
      * 
      * @return object
@@ -120,15 +123,16 @@ class ParseExcel extends Model
      */
     public function getArray()
     {
-
+        
         $nowSelectedList =  $this->nowSelectedList;
         
     //    if (!isset($nowSelectedList) || empty($nowSelectedLis)) {
     //        $nowSelectedList = 0;
     //    }
+       
         //Возвращает первый активный лист this->spreadsheet->getActiveSheet()
         //Возвращает выбранный активный лист $this->spreadsheet->getSheet($nowSelectedList);
-        
+   
         //Возвращаем активный по-умолчанию лист
         if (isset($this->line)) {
 
@@ -167,9 +171,7 @@ class ParseExcel extends Model
                 $z++; 
                 }  
             }
-
             return $massiv;
-             
         } else {
             return null;    
         }
@@ -198,21 +200,21 @@ class ParseExcel extends Model
      * @return array
      * Найстроки для компонента
      */
-    public function settingGrid() {
+    public function settingGrid() 
+    {
         
-    //    $form2 = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]);
-        // $form2->field($test, 'testText')->dropDownList(['first' => 'first'])
         if (isset($this->line)) {
             $array = $this->array;
 
             $header = $this->dropArray(false, null, null, null);
+               
             foreach ($array[1] as $name => $element) {
-
+                
                 $nameAttribute[] = $name;
             }
-
-        //    $test1[] = ['class' => 'yii\grid\SerialColumn'];
-            $i = 0;
+             
+            //$test1[] = ['class' => 'yii\grid\SerialColumn'];
+            
             foreach ($nameAttribute as $my) {
 
                 $columns[] = [
@@ -220,17 +222,6 @@ class ParseExcel extends Model
                     'attribute' => $my,
                     ];
             }
-            
-        //    for ($i = 0;$i<count($columns);$i++) {
-        //    $result =  array_merge($columns[$i],['header' => 'test']);
-                
-       //     }
-         //   return $result;
-            
-           //'filter' => Html::dropDownList('changeSheet',null, $nameAttribute, ['class' => 'btn btn-primary'])
-        
-        //    $result = array_merge($columns,$test1);
-
             return $columns;
         }
     }
@@ -238,11 +229,11 @@ class ParseExcel extends Model
     /**
      * 
      * @return array
+     * 
      * Преобразование данных из Excel в Провайдер данных для компонентов yii2
      */
     public function dataParse($array = [])
     {
-       
        $settingGrid = $this->sortArrayDataProvider();
        
         if (!isset($array)) {
@@ -253,25 +244,23 @@ class ParseExcel extends Model
         $provider = new ArrayDataProvider([
             'allModels' => $array,
             'sort' => [
-                'attributes' =>  $settingGrid 
+                'attributes' => $settingGrid 
             ],
             'pagination' => [
                 'pageSize' => 20,
             ],
 
         ]);
-
-        return $provider;
-            
+        return $provider;   
     }
    
     /**
      * 
-     * @param bool $boolean
      * @return array
+     * 
      * Выгружаем либо готовый массив данных, который прошел проверки, либо выгружаем ошибки, которые были найдены при валидации
      */
-    public function validatesArray($boolean = null)
+    public function validatesArray()
     {    
         $validatesArrayEmpty = $this->validatesArrayEmpty(true);
         $validatesArrayName = $this->validatesArrayName();
@@ -279,7 +268,7 @@ class ParseExcel extends Model
         if (isset($validatesArrayName)){
             return $validatesArrayName;
         } else {
-            $this->getArray();
+            return $this->getArray();
         }
         
         if (isset($validatesArrayEmpty)) {
@@ -294,6 +283,7 @@ class ParseExcel extends Model
      * 
      * @return array
      * @rerurn string
+     * 
      * Создание обязательных полей для документа Excel. Если таких полей в документе
      * не будет, то валидация будет не успешна
      */
@@ -316,7 +306,6 @@ class ParseExcel extends Model
                     }
                 }
             } 
-
             if (!empty($notValidate)) {
                 return $notValidate;
             }
@@ -332,8 +321,6 @@ class ParseExcel extends Model
      */
     public function validatesArrayInt()
     {
-                
-
         $validate = $this->validatesArray;
         $array = $this->array;
 
@@ -355,19 +342,18 @@ class ParseExcel extends Model
                         }
                     }
                 }
-                
                  return $notValidate;
             } else {
                 return null;
             }
-        }        
-        
+        }               
     }
     
     /**
      * @param bool $boolean
      * @return array
      * @return null
+     * 
      * Проверка пустых ячеек
      */
     public function validatesArrayEmpty($bolean = null) 
@@ -411,15 +397,13 @@ class ParseExcel extends Model
                     foreach ($notValidate as $key => $element) {
                         $results[0][$key] =  'На строках: '.implode(', ', $element).' найдены не соответствие данных';
                     }
-
                     return $results;
                 }    
-
                 return $notValidate;
-
             }
         }
     }
+    
     /**
      * 
      * @param bool $bolean
@@ -427,6 +411,8 @@ class ParseExcel extends Model
      * @param int $int
      * @param array $arrayMerge
      * @return string
+     * 
+     * Метод формирует кнопки "Выпадающий список" (НА ДАННЫЙ МОМЕНТ НЕ ИСПОЛЬЗУЕТСЯ)
      */
     public function dropArray(bool $bolean = null, $style = [],int $int = null, $arrayMerge = [])
     {
@@ -469,12 +455,18 @@ class ParseExcel extends Model
                     
             }
         } else {
-
             return 'Для вывода данных значение должно быть true или false';
         }
 
     }
     
+    /**
+     * 
+     * @return array
+     * 
+     * Метод принимает АЯКС запрос для сохранения нужных массив данных для валидации
+     * 
+     */
     public function ajaxGet()
     {
         $get = $this->get;
@@ -487,11 +479,17 @@ class ParseExcel extends Model
         return  file_get_contents('test.json');  
     }
     
+    /**
+     * 
+     * @param bool $boolean
+     * @return array
+     * 
+     * Метод формирует массив данных "Действующие правила" 
+     */
     public function ajaxValidateResult(bool $boolean = null)
-    {
-        //'<li id="liColumns" style="list-style-type: none;"><div id="' + y + '" class="textColumns">' + addColumns + '</div><div class="deleteColumns" onClick="deleteColumns(this)">Удалить</div></li>';
-        
+    {    
         $array = json_decode(file_get_contents('test.json'),true);
+        
         if (isset($array)) {
             if ($boolean === true) {
                 echo '<ul id="validateColumnsView">';
@@ -506,16 +504,58 @@ class ParseExcel extends Model
                 }
                 echo '</ul>';
             } elseif($boolean === false) {
-
             return json_decode(file_get_contents('test.json'),true);
-
             }
         } 
     }
     
+    /**
+     * 
+     * @return array
+     * @return string
+     * @return null
+     * 
+     * Метод переопределяет название колонок для записи в БД. Если колонки не изменены, 
+     * то вернет стандартный массив данных
+     */
     public function nowColumnsList()
     {
+        $post = $this->post; //Пост запрос
+        $array = $this->array; //Исходный массив данных
         
+        if (isset($post) && isset($post['testName'])) {
+            
+            unset($post["testName"]); // Удаление лишних элементов
+            unset($post["_csrf"]); // Удаление лишних элементов
+            $array1Edit = preg_replace('~\s~i','_', $post);// Так как, не совпадают названия ключей и элементов
+            $y = 0; // Для определения правильного номера элемента
+            $z = 0; // Для определения правильного номера элемента
+            
+            foreach ($array1Edit as $key => $element) {
+                if ($key != $element) {
+                    $testArrayResult = array_keys($array[1]);
+                    $perl[$y] = $element;
+                }
+                $y++;
+            }
+            
+            
+            if (!empty($perl)) {
+                $basket =  array_replace($testArrayResult, $perl);
+                for ($i = 1;$i<count($array);$i++) {
+                    foreach ($array[$i] as $arrayKey => $arrayElement) {
+                        $resultArray[$i][$basket[$z]] = $arrayElement;
+                        $z++;
+                    }
+                    $z = 0;
+                } 
+            return $resultArray;
+            } else {
+            return 'Сюда можно добавить стандартный массив $this->array, так как изменения колонок не было';    
+            }
+        } else {
+            return null;
+        }
     }
         
 }

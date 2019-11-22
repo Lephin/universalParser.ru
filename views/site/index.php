@@ -8,20 +8,20 @@ use yii\helpers\ArrayHelper;
 
 $this->title = 'My Yii Application';
 
-// echo '<pre>';
+ echo '<pre>';
+ var_dump($test->nowColumnsList());
+ var_dump($test->validatesArrayName());
 // var_dump($test->getSheetNames());
 // var_dump($test->nowSelectedList);
 // var_dump($test->ajaxValidateResult(true));
 // var_dump($test->validatesArray);
-// echo '</pre>';
+ echo '</pre>';
 ?>
 <div class="site-index">
     <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]) ?>
 
     <div style="display: block;vertical-align: top"><?= $form->field($model, 'imageFile')->fileInput(['value' => 'Документ'])->label('Загрузить документ') ?></div>
-
     <div  style="display: block;vertical-align: top;"><button style="margin-bottom: 40px;">Загрузить</button></div>
-   
    
     <table class="table table-striped table-bordered">
         <tbody>
@@ -36,8 +36,7 @@ $this->title = 'My Yii Application';
                 </td>
             </tr>
             <tr>
-                <td>
-                    
+                <td>     
                     <h3>Панель создания валидации</h3>
                     <table>
                         <tr>
@@ -75,7 +74,7 @@ $this->title = 'My Yii Application';
                 </td>
                 <td>
                     <h5>Добавить новую колонку</h5>
-                    <?php echo Html::textInput('newColumns', null, ['id' => 'addColumns'])?>
+                    <?php echo Html::textInput('', null, ['id' => 'addColumns'])?>
                     <?php echo Html::button('Добавить',[
                         'onClick' => 'add()'
                     ])?>
@@ -87,7 +86,7 @@ $this->title = 'My Yii Application';
                     <ul id="validateRulesView">
                     </ul>
                     
-                    <h5>Действующие правила</h5>
+                    <h3>Действующие правила</h3>
                     <?php $test->ajaxValidateResult(true)?>
                 </td>
                 <td>
@@ -99,17 +98,24 @@ $this->title = 'My Yii Application';
             </tr>
         </tbody>
     </table>
-
-
+  <?php ActiveForm::end(); ?> 
+    
+<?php  echo Html::beginForm('', 'post',['name' => 'testForm']); ?>
+<?php $start = microtime(true);?>
   <?php echo GridView::widget([
             //    'filterModel' => ["ID"],
             //    'tableOptions' => ['id' => 'addDrop'],
                 'dataProvider' => $test->dataParse($test->validatesArray()),
-                'columns' => $test->settingGrid(),
+                'columns' =>  $test->settingGrid(),
             ]) ;
+  $finish = microtime(true);
+
+  $delta = $finish - $start;
+
+    echo $delta . ' сек.';
         ?>
 
     <?php   echo Html::submitButton('Загрузить в БД',['class' => 'btn btn-primary','name' => 'testName']);?>
-      <?php ActiveForm::end(); ?>   
- 
+      
+ <?php Html::endForm(); ?>
 </div>

@@ -72,11 +72,13 @@ class SiteController extends Controller
     {
         $request = Yii::$app->request;
         $get = Yii::$app->request->get();
+        $post = Yii::$app->request->post();
+        
         
         $session = Yii::$app->session;
         
         $model = new UploadForm(); // Загрузка файла
-        $parseModel = new ParseExcel($session->get('line'), null, $get,$session->get('numberList'));
+        $parseModel = new ParseExcel($session->get('line'), null, $get,$session->get('numberList'), $post);
         
         if (Yii::$app->request->isGet) {
           if (isset($get['value'])) {
@@ -86,24 +88,17 @@ class SiteController extends Controller
         
         if (Yii::$app->request->isPost) {
             $post = Yii::$app->request->post();
-            $session->set('numberList', $post["changeNameList"]);
             
-            if (isset($post['testName'])) {
-                echo '<pre>';
-                echo 'Hello World';
-                echo '</pre>';
+            if (isset($post['changeNameList'])) {
+                $session->set('numberList', $post["changeNameList"]);
             }
             
-        //    echo '<pre>';
-        //    var_dump($post);
-        //   echo '</pre>';
-            $parseModel = new ParseExcel($session->get('line'),null,$get,$session->get('numberList'));
-            
+            $parseModel = new ParseExcel($session->get('line'),null,$get,$session->get('numberList'),$post);
             $model->imageFile = UploadedFile::getInstance($model, 'imageFile'); 
+            
             if (isset($model->imageFile)) {
-                if ($model->upload()) {
-                    
-                    $parseModel = new ParseExcel($session->get('line'),null,$get,$session->get('numberList'));
+                if ($model->upload()) {        
+                    $parseModel = new ParseExcel($session->get('line'),null,$get,$session->get('numberList'), $post );
   
                     return $this->render('index', [
                         'model' => $model,
